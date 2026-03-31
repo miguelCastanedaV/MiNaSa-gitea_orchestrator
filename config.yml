@@ -1,0 +1,43 @@
+# Configuración de act_runner para Gitea Actions
+# Este archivo define cómo se ejecutan los jobs
+
+log:
+  level: info
+
+runner:
+  # Máximo de jobs paralelos
+  capacity: 1
+  timeout: 3h
+  insecure: false
+  fetch_timeout: 5m
+  fetch_interval: 2s
+
+cache:
+  enabled: true
+  dir: /data/cache
+  ttl: 24h
+
+container:
+  # RED CRÍTICA: especifica que los contenedores de workflow deben estar en gitea-network
+  network: gitea-network
+  privileged: false
+  options: --network=gitea-network
+  workdir_parent: /workspace
+  valid_volumes: []
+  docker_host: ""
+  force_pull: false
+  force_rebuild: false
+  env_file: ""
+  env:
+    A_SECRET_NAME: a_secret_value
+  # Expone el Docker socket al contenedor para que pueda crear otros contenedores
+  volumes:
+    - /var/run/docker.sock:/var/run/docker.sock
+
+job:
+  timeout_minutes: 0
+  services_timeout_minutes: 0
+  container_timeout_minutes: 0
+  services_container_timeout_minutes: 0
+  stop_on_failure: false
+

@@ -1,0 +1,108 @@
+services:
+  gitea:
+    image: gitea/gitea:1.22
+    container_name: gitea
+    restart: unless-stopped
+    environment:
+      - USER_UID=1000
+      - USER_GID=1000
+      - GITEA__database__DB_TYPE=postgres
+      - GITEA__database__HOST=gitea-db:5432
+      - GITEA__database__NAME=${GITEA_DB_NAME:-gitea}
+      - GITEA__database__USER=${GITEA_DB_USER:-gitea}
+      - GITEA__database__PASSWD=${GITEA_DB_PASSWORD:-gitea}
+      - GITEA__security__SECRET_KEY=changeme_secret_key_min_64_chars_for_security_purposes_12345
+      - GITEA__oauth2__JWT_SECRET=changeme_jwt_secret_min_43_chars_for_oauth2_12345
+      - GITEA__server__ROOT_URL=${GITEA_APP_URL:-http://localhost}:${GITEA_APP_PORT:-3000}
+      - GITEA__server__DOMAIN=${GITEA_APP_DOMAIN:-localhost}
+      - GITEA__server__HTTP_PORT=${GITEA_APP_PORT:-3000}
+      - GITEA__server__SSH_DOMAIN=${GITEA_APP_DOMAIN:-localhost}
+      - GITEA__server__SSH_PORT=${GITEA_SSH_PORT:-222}
+      - GITEA__repository__DEFAULT_PRIVATE=true
+      - GITEA__repository__ENABLE_PUSH_CREATE_USER=true
+      - GITEA__actions__ENABLED=true
+      - GITEA__actions__DEFAULT_ACTIONS_URL=https://github.com
+      - GITEA__packages__ENABLED=true
+      - GITEA__service__DISABLE_REGISTRATION=false
+      - GITEA__service__REQUIRE_SIGNIN_VIEW=true
+    ports:
+      - ${GITEA_APP_PORT:-3000}:3000  # Gitea Web UI
+      - ${GITEA_SSH_PORT:-222}:22     # Gitea SSH
+    volumes:
+      - gitea_data:/data
+      - /etc/timezone:/etc/timezone:ro
+      - /etc/localtime:/etc/localtime:ro
+    networks:
+      - gitea-network
+    depends_on:
+      - gitea-db
+
+  gitea-db:
+    image: postgres:16-alpine
+    container_name: gitea-db
+    restart: unless-stopped
+    environment:
+      - POSTGRES_USER=${GITEA_DB_USER:-gitea}
+      - POSTGRES_PASSWORD=${GITEA_DB_PASSWORD:-gitea}
+      - POSTGRES_DB=${GITEA_DB_NAME:-gitea}
+    volumes:
+      - gitea_db:/var/lib/postgresql/data
+    networks:
+      - gitea-network
+
+  gitea-runner:
+    image: gitea/act_runner:latest
+    container_name: gitea-runner
+    restart: unless-stopped
+    depends_on:
+      - gitea
+    privileged: true
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+      - gitea_runner_data:/data
+      - ./config.yml:/tmp/config.yml:ro
+    environment:
+      GITEA_INSTANCE_URL: http://gitea:3000
+      GITEA_RUNNER_REGISTRATION_TOKEN: "${GITEA_RUNNER_REGISTRATION_TOKEN}"
+      CONFIG_FILE: /tmp/config.yml
+    command: ["daemon", "--config", "/tmp/config.yml"]
+    networks:
+      - gitea-network
+
+  registry:
+    image: registry:2.8
+    container_name: gitea-registry
+    restart: unless-stopped
+    ports:
+      - ${GITEA_REGISTRY_PORT:-5000}:5000
+    volumes:
+      - registry_data:/var/lib/registry
+    environment:
+      REGISTRY_HTTP_ADDR: 0.0.0.0:5000
+      REGISTRY_STORAGE_FILESYSTEM_ROOTDIRECTORY: /var/lib/registry
+      REGISTRY_STORAGE_DELETE_ENABLED: "true"
+    networks:
+      - gitea-network
+
+  registry-ui:
+    image: joxit/docker-registry-ui:latest
+    ports:
+      - ${GITEA_REGISTRY_APP_PORT:-8080}:80
+    environment:
+      REGISTRY_TITLE: GS PHVA Registry
+      REGISTRY_URL: ${GITEA_REGISTRY_URL}:${GITEA_REGISTRY_PORT:-5000}
+      NGINX_PROXY_PASS_URL: http://registry:5000
+    networks:
+      - gitea-network
+
+volumes:
+  gitea_data:
+  gitea_db:
+  gitea_runner_data:
+  registry_data:
+
+networks:
+  gitea-network:
+    name: gitea-network
+    driver: bridge
+

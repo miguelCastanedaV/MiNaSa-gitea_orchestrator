@@ -1,0 +1,18 @@
+# Gitea - Ignorar datos locales
+gitea_data/
+gitea_db/
+gitea_runner_data/
+registry_data/
+
+# IDES
+.idea/
+.vscode/
+
+# Env
+.env
+
+# No ignorar configuración
+!docker-compose.gitea.yml
+!GITEA_SETUP.md
+!start-gitea.sh
+
