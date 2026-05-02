@@ -95,11 +95,26 @@ services:
     networks:
       - gitea-network
 
+  portainer:
+    image: portainer/portainer-ee:latest
+    container_name: portainer
+    restart: unless-stopped
+    command: -H unix:///var/run/docker.sock  # Se conecta al socket de Docker
+    ports:
+      - "9000:9000"   # Puerto para la interfaz web HTTP
+      - "9443:9443"   # Puerto para la interfaz web HTTPS (recomendado)
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock  # Acceso al socket de Docker
+      - portainer_data:/data                       # Persistencia de datos
+    networks:
+      - gitea-network  # La misma red que tu 'registry' y 'gitea' para que se vean
+
 volumes:
   gitea_data:
   gitea_db:
   gitea_runner_data:
   registry_data:
+  portainer_data:
 
 networks:
   gitea-network:
