@@ -114,6 +114,7 @@ volumes:
   gitea_db:
   gitea_runner_data:
   registry_data:
+    name: minasa-registry-data
   portainer_data:
 
 networks:
