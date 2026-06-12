@@ -4,6 +4,7 @@ gitea_db/
 gitea_runner_data/
 registry_data/
 concerns/registry-backup/*.gz
+concerns/gitea/backup/*.zip
 
 # IDES
 .idea/
