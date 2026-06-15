@@ -21,7 +21,7 @@ services:
       - GITEA__repository__DEFAULT_PRIVATE=true
       - GITEA__repository__ENABLE_PUSH_CREATE_USER=true
       - GITEA__actions__ENABLED=true
-      - GITEA__actions__DEFAULT_ACTIONS_URL=https://github.com
+      - GITEA__actions__DEFAULT_ACTIONS_URL=github
       - GITEA__packages__ENABLED=true
       - GITEA__service__DISABLE_REGISTRATION=false
       - GITEA__service__REQUIRE_SIGNIN_VIEW=true
