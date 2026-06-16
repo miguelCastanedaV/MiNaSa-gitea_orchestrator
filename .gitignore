@@ -3,7 +3,7 @@ gitea_data/
 gitea_db/
 gitea_runner_data/
 registry_data/
-concerns/registry-backup/*.gz
+*.tar.gz
 concerns/gitea/backup/*.zip
 
 # IDES
